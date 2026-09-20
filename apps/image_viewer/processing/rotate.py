@@ -38,7 +38,13 @@ def _rotation_clips(width: int, height: int, angle: float) -> bool:
     return bbox_width > width + 1 or bbox_height > height + 1
 
 
-def apply_rotation(image: np.ndarray, angle: float, interpolation: str, border_mode: str) -> RotationResult:
+def apply_rotate(
+    image: np.ndarray,
+    angle: float,
+    center: tuple[float, float] | None = None,
+    border_mode: str = "Constant Black",
+    interpolation: str = "Bilinear",
+) -> RotationResult:
     validate_image_array(image)
     if interpolation not in INTERPOLATION_MAP:
         raise ValueError(f"Unsupported interpolation: {interpolation}")
@@ -46,8 +52,8 @@ def apply_rotation(image: np.ndarray, angle: float, interpolation: str, border_m
         raise ValueError(f"Unsupported border mode: {border_mode}")
 
     height, width = image.shape[:2]
-    center = (width / 2.0, height / 2.0)
-    matrix = cv2.getRotationMatrix2D(center, angle, 1.0)
+    rotation_center = center if center is not None else (width / 2.0, height / 2.0)
+    matrix = cv2.getRotationMatrix2D(rotation_center, angle, 1.0)
 
     start = time.perf_counter()
     rotated = cv2.warpAffine(
@@ -72,3 +78,19 @@ def apply_rotation(image: np.ndarray, angle: float, interpolation: str, border_m
         processing_time_ms=elapsed,
     )
 
+
+def apply_rotation(
+    image: np.ndarray,
+    angle: float,
+    interpolation: str = "Bilinear",
+    border_mode: str = "Constant Black",
+    center: tuple[float, float] | None = None,
+) -> RotationResult:
+    """Rotate around the image center by default, with optional custom-center support."""
+    return apply_rotate(
+        image=image,
+        angle=angle,
+        center=center,
+        border_mode=border_mode,
+        interpolation=interpolation,
+    )

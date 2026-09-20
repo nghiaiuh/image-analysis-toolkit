@@ -93,6 +93,7 @@ QComboBox QAbstractItemView {{ background: {colors.SURFACE}; border: 1px solid {
 QTabBar::tab {{ color: {colors.TEXT_SECONDARY}; background: transparent; padding: 8px 11px; border: 0; }}
 QTabBar::tab:selected {{ color: {colors.TEXT}; border-bottom: 2px solid {colors.CYAN}; }}
 QTextEdit, QListWidget, QTableWidget, QScrollArea {{ background: {colors.PANEL}; border: 1px solid {colors.BORDER}; border-radius: 10px; }}
+QTextBrowser#algorithmExplanation {{ background: {colors.PANEL}; border: 1px solid {colors.BORDER}; border-radius: 10px; padding: 8px; }}
 QHeaderView::section {{ background: {colors.SURFACE}; color: {colors.TEXT_SECONDARY}; padding: 7px; border: 0; border-bottom: 1px solid {colors.BORDER}; }}
 QTableWidget {{ gridline-color: rgba(120, 170, 220, 0.07); selection-background-color: rgba(47, 155, 255, 0.18); }}
 QCheckBox {{ spacing: 8px; color: {colors.TEXT_SECONDARY}; }}

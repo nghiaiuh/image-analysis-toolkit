@@ -3,6 +3,8 @@ from __future__ import annotations
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import QDoubleSpinBox, QHBoxLayout, QLabel, QSlider, QVBoxLayout, QWidget
 
+from shared.ui.interaction import install_drag_first_parameter_behavior
+
 
 class ParameterSlider(QWidget):
     valueChanged = Signal(float)
@@ -18,6 +20,7 @@ class ParameterSlider(QWidget):
         parent: QWidget | None = None,
     ) -> None:
         super().__init__(parent)
+        install_drag_first_parameter_behavior()
         self.minimum = minimum
         self.maximum = maximum
         self.step = step

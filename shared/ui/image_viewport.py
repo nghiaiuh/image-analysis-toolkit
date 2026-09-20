@@ -186,7 +186,7 @@ class ImageViewport(QWidget):
 
         self.title_label = QLabel(title)
         self.title_label.setObjectName("panelTitle")
-        self.metadata_label = QLabel("No image")
+        self.metadata_label = QLabel("Không có ảnh")
         self.metadata_label.setObjectName("canvasMetadata")
         header = QHBoxLayout()
         header.setContentsMargins(12, 10, 12, 0)
@@ -194,11 +194,11 @@ class ImageViewport(QWidget):
         header.addStretch(1)
         header.addWidget(self.metadata_label)
 
-        self.fit_button = QPushButton("Fit")
+        self.fit_button = QPushButton("Vừa khung")
         self.one_to_one_button = QPushButton("1:1")
-        self.reset_button = QPushButton("Reset")
+        self.reset_button = QPushButton("Đặt lại")
         for button in (self.fit_button, self.one_to_one_button, self.reset_button):
-            button.setToolTip("Fit image" if button is self.fit_button else "Actual size" if button is self.one_to_one_button else "Reset view")
+            button.setToolTip("Vừa ảnh với khung" if button is self.fit_button else "Kích thước thật" if button is self.one_to_one_button else "Đặt lại khung xem")
             button.setFixedHeight(27)
         controls = QHBoxLayout()
         controls.setContentsMargins(12, 0, 12, 10)
@@ -240,7 +240,7 @@ class ImageViewport(QWidget):
         self._scene.setSceneRect(self._pixmap_item.boundingRect())
         width, height = image_dimensions(image)
         channels = 1 if image.ndim == 2 else image.shape[2]
-        self.metadata_label.setText(f"{width} × {height}  ·  {channels} ch")
+        self.metadata_label.setText(f"{width} × {height}  ·  {channels} kênh")
         self.view.set_pixmap_item(self._pixmap_item)
 
     def set_crop_enabled(self, enabled: bool) -> None:
@@ -250,9 +250,9 @@ class ImageViewport(QWidget):
         self.view.set_crop_rect(rect)
 
     def _show_empty_state(self) -> None:
-        self.metadata_label.setText("Awaiting image")
+        self.metadata_label.setText("Đang chờ ảnh")
         self._scene.clear()
-        message = self._scene.addText("Drop an image here\nor use Open Image")
+        message = self._scene.addText("Thả ảnh vào đây\nhoặc dùng Mở ảnh")
         message.setDefaultTextColor(QColor("#8E9CAB"))
         message.setPos(-95, -28)
         self._scene.setSceneRect(-180, -90, 360, 180)

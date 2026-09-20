@@ -20,15 +20,15 @@ class AppSidebar(QWidget):
         title = QLabel("IA  /  TOOLKIT")
         title.setObjectName("sectionTitle")
         layout.addWidget(title)
-        subtitle = QLabel("IMAGE WORKSPACE")
+        subtitle = QLabel("KHÔNG GIAN LÀM VIỆC ẢNH")
         subtitle.setObjectName("metadata")
         layout.addWidget(subtitle)
         layout.addSpacing(18)
         for index, (key, label) in enumerate((
             ("image", "◈  Image Studio"),
             ("counter", "◌  Cell Counter"),
-            ("history", "◷  History"),
-            ("settings", "⚙  Settings"),
+            ("history", "◷  Lịch sử"),
+            ("settings", "⚙  Cài đặt"),
         )):
             button = QPushButton(label)
             button.setObjectName("navButton")
@@ -49,7 +49,7 @@ class StatusStrip(QWidget):
         self.setObjectName("statusStrip")
         layout = QHBoxLayout(self)
         layout.setContentsMargins(12, 5, 12, 5)
-        self._label = QLabel("Ready")
+        self._label = QLabel("Sẵn sàng")
         self._label.setObjectName("metadata")
         layout.addWidget(self._label)
         layout.addStretch(1)

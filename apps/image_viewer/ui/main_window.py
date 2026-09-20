@@ -26,7 +26,7 @@ from shared.constants import IMAGE_FILTER, VIDEO_FILTER
 from shared.image_io import load_image, save_image
 from shared.image_utils import image_dimensions
 from shared.validators import validate_image_array
-from shared.video_io import load_first_video_frame
+from shared.ui.video_frame_dialog import VideoFrameSelectorDialog
 from shared.ui.file_toolbar import FileToolbar
 
 
@@ -43,8 +43,8 @@ class MainWindow(QMainWindow):
         self.current_crop_rect: tuple[int, int, int, int] | None = None
 
         self.toolbar = FileToolbar(include_video=True)
-        self.original_canvas = ImageCanvas("Original")
-        self.result_canvas = ImageCanvas("Result")
+        self.original_canvas = ImageCanvas("Ảnh gốc (Original)")
+        self.result_canvas = ImageCanvas("Ảnh kết quả (Result)")
         self.controls_panel = ControlsPanel()
         self.explanation_panel = ExplanationPanel()
         self.analysis_panel = ResultAnalysisPanel()
@@ -52,9 +52,9 @@ class MainWindow(QMainWindow):
         self.image_info.text.setReadOnly(True)
 
         self.tabs = QTabWidget()
-        self.tabs.addTab(self.explanation_panel, "Algorithm Explanation")
-        self.tabs.addTab(self.analysis_panel, "Result Analysis")
-        self.tabs.addTab(self.image_info, "Image Information")
+        self.tabs.addTab(self.explanation_panel, "Giải thích thuật toán")
+        self.tabs.addTab(self.analysis_panel, "Phân tích kết quả")
+        self.tabs.addTab(self.image_info, "Thông tin ảnh")
 
         central = QWidget()
         self.setCentralWidget(central)
@@ -100,8 +100,15 @@ class MainWindow(QMainWindow):
         if not path:
             return
         try:
-            self._set_source_image(load_first_video_frame(path))
-            self.statusBar().showMessage(f"Loaded first video frame: {Path(path).name}", 4000)
+            dialog = VideoFrameSelectorDialog(path, parent=self)
+            if dialog.exec():
+                frame, frame_index = dialog.selected_frame()
+                if frame is not None:
+                    self._set_source_image(frame)
+                    self.statusBar().showMessage(
+                        f"Loaded frame {frame_index + 1}/{dialog.metadata.frame_count} from {Path(path).name}",
+                        5000,
+                    )
         except Exception as error:  # pragma: no cover - GUI interaction
             self._show_error(str(error))
 
@@ -222,12 +229,12 @@ class MainWindow(QMainWindow):
         original_size = image_dimensions(self.original_image) if self.original_image is not None else None
         result_size = image_dimensions(self.result_image) if self.result_image is not None else None
         html = f"""
-        <h3>Image Information</h3>
-        <p><b>Original size:</b> {self._size_text(original_size)}</p>
-        <p><b>Result size:</b> {self._size_text(result_size)}</p>
-        <p><b>Original channels:</b> {self._channel_text(self.original_image)}</p>
-        <p><b>Result channels:</b> {self._channel_text(self.result_image)}</p>
-        <p><b>Current tool:</b> {self.controls_panel.current_operation()}</p>
+        <h3>Thông tin ảnh</h3>
+        <p><b>Kích thước gốc:</b> {self._size_text(original_size)} px</p>
+        <p><b>Kích thước kết quả:</b> {self._size_text(result_size)} px</p>
+        <p><b>Số kênh màu gốc:</b> {self._channel_text(self.original_image)}</p>
+        <p><b>Số kênh màu kết quả:</b> {self._channel_text(self.result_image)}</p>
+        <p><b>Công cụ đang chọn:</b> {self.controls_panel.current_operation()}</p>
         """
         self.image_info.text.setHtml(html)
 

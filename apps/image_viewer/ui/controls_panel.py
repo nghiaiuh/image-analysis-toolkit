@@ -30,9 +30,9 @@ class ControlsPanel(QWidget):
         self.operation_combo = QComboBox()
         self.operation_combo.addItems(["Zoom", "Rotate", "Crop"])
 
-        operation_box = QGroupBox("Tool")
+        operation_box = QGroupBox("Công cụ")
         operation_layout = QVBoxLayout(operation_box)
-        operation_layout.addWidget(QLabel("Select operation"))
+        operation_layout.addWidget(QLabel("Chọn thao tác:"))
         operation_layout.addWidget(self.operation_combo)
 
         self.stacked = QStackedWidget()
@@ -74,16 +74,16 @@ class ControlsPanel(QWidget):
 
     def _build_zoom_page(self) -> QWidget:
         page = QWidget()
-        box = QGroupBox("Zoom Settings")
-        self.zoom_scale = ParameterSlider("Scale", 0.25, 4.0, DEFAULT_SCALE, step=0.05, decimals=2)
+        box = QGroupBox("Cài đặt Zoom")
+        self.zoom_scale = ParameterSlider("Tỉ lệ (Scale)", 0.25, 4.0, DEFAULT_SCALE, step=0.05, decimals=2)
         self.zoom_interpolation = QComboBox()
         self.zoom_interpolation.addItems(["Nearest Neighbor", "Bilinear", "Bicubic"])
         self.zoom_interpolation.setCurrentText(DEFAULT_INTERPOLATION)
-        self.zoom_reset = QPushButton("Reset Zoom")
+        self.zoom_reset = QPushButton("Đặt lại Zoom")
 
         layout = QVBoxLayout(box)
         layout.addWidget(self.zoom_scale)
-        layout.addWidget(QLabel("Interpolation"))
+        layout.addWidget(QLabel("Phương pháp nội suy:"))
         layout.addWidget(self.zoom_interpolation)
         layout.addWidget(self.zoom_reset)
 
@@ -97,8 +97,8 @@ class ControlsPanel(QWidget):
 
     def _build_rotate_page(self) -> QWidget:
         page = QWidget()
-        box = QGroupBox("Rotate Settings")
-        self.rotate_angle = ParameterSlider("Angle", -180, 180, DEFAULT_ROTATION_ANGLE, step=1.0, decimals=0)
+        box = QGroupBox("Cài đặt Xoay")
+        self.rotate_angle = ParameterSlider("Góc xoay (Angle)", -180, 180, DEFAULT_ROTATION_ANGLE, step=1.0, decimals=0)
         self.rotate_interpolation = QComboBox()
         self.rotate_interpolation.addItems(["Nearest Neighbor", "Bilinear", "Bicubic"])
         self.rotate_interpolation.setCurrentText(DEFAULT_INTERPOLATION)
@@ -107,11 +107,11 @@ class ControlsPanel(QWidget):
         self.rotate_border.setCurrentText(DEFAULT_ROTATION_BORDER)
 
         shortcuts = QGridLayout()
-        self.left_90_button = QPushButton("90° Left")
-        self.right_90_button = QPushButton("90° Right")
+        self.left_90_button = QPushButton("Xoay trái 90°")
+        self.right_90_button = QPushButton("Xoay phải 90°")
         self.ccw_button = QPushButton("-15°")
         self.cw_button = QPushButton("+15°")
-        self.rotate_reset = QPushButton("Reset Rotate")
+        self.rotate_reset = QPushButton("Đặt lại góc xoay")
         shortcuts.addWidget(self.left_90_button, 0, 0)
         shortcuts.addWidget(self.right_90_button, 0, 1)
         shortcuts.addWidget(self.ccw_button, 1, 0)
@@ -119,9 +119,9 @@ class ControlsPanel(QWidget):
 
         layout = QVBoxLayout(box)
         layout.addWidget(self.rotate_angle)
-        layout.addWidget(QLabel("Interpolation"))
+        layout.addWidget(QLabel("Phương pháp nội suy:"))
         layout.addWidget(self.rotate_interpolation)
-        layout.addWidget(QLabel("Border mode"))
+        layout.addWidget(QLabel("Chế độ bù viền:"))
         layout.addWidget(self.rotate_border)
         layout.addLayout(shortcuts)
         layout.addWidget(self.rotate_reset)
@@ -141,7 +141,7 @@ class ControlsPanel(QWidget):
 
     def _build_crop_page(self) -> QWidget:
         page = QWidget()
-        box = QGroupBox("Crop Settings")
+        box = QGroupBox("Cài đặt Cắt (Crop)")
         form = QFormLayout()
         self.crop_x = QSpinBox()
         self.crop_y = QSpinBox()
@@ -150,19 +150,19 @@ class ControlsPanel(QWidget):
         for widget in (self.crop_x, self.crop_y, self.crop_width, self.crop_height):
             widget.setRange(0, 100000)
             widget.valueChanged.connect(lambda _: self._emit_current_parameters())
-        form.addRow("X", self.crop_x)
-        form.addRow("Y", self.crop_y)
-        form.addRow("Width", self.crop_width)
-        form.addRow("Height", self.crop_height)
+        form.addRow("X:", self.crop_x)
+        form.addRow("Y:", self.crop_y)
+        form.addRow("Rộng (Width):", self.crop_width)
+        form.addRow("Cao (Height):", self.crop_height)
 
         buttons = QHBoxLayout()
-        self.crop_apply = QPushButton("Apply Crop")
+        self.crop_apply = QPushButton("Áp dụng cắt")
         self.crop_apply.setObjectName("accentButton")
-        self.crop_reset = QPushButton("Reset Crop")
+        self.crop_reset = QPushButton("Đặt lại vùng cắt")
         buttons.addWidget(self.crop_apply)
         buttons.addWidget(self.crop_reset)
 
-        help_label = QLabel("Drag on the original image to select a crop rectangle.")
+        help_label = QLabel("Mẹo: Bạn có thể kéo chuột trực tiếp trên ảnh gốc để chọn vùng cần cắt.")
         help_label.setWordWrap(True)
 
         layout = QVBoxLayout(box)

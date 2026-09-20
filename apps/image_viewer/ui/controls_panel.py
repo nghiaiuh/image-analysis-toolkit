@@ -1,14 +1,17 @@
 from __future__ import annotations
 
-from PySide6.QtCore import Signal
+from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import (
     QComboBox,
     QFormLayout,
     QGridLayout,
     QGroupBox,
     QHBoxLayout,
+    QLayout,
     QLabel,
     QPushButton,
+    QScrollArea,
+    QSizePolicy,
     QSpinBox,
     QStackedWidget,
     QVBoxLayout,
@@ -47,8 +50,14 @@ class ControlsPanel(QWidget):
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(12)
         layout.addWidget(operation_box)
-        layout.addWidget(self.stacked)
-        layout.addStretch(1)
+        self.stacked.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Minimum)
+        self.settings_scroll = QScrollArea()
+        self.settings_scroll.setWidgetResizable(True)
+        self.settings_scroll.setMinimumHeight(0)
+        self.settings_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.settings_scroll.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        self.settings_scroll.setWidget(self.stacked)
+        layout.addWidget(self.settings_scroll, 1)
 
         self.operation_combo.currentIndexChanged.connect(self.stacked.setCurrentIndex)
         self.operation_combo.currentTextChanged.connect(self.operationChanged.emit)
@@ -82,6 +91,7 @@ class ControlsPanel(QWidget):
         self.zoom_reset = QPushButton("Đặt lại Zoom")
 
         layout = QVBoxLayout(box)
+        layout.setSizeConstraint(QLayout.SizeConstraint.SetMinimumSize)
         layout.addWidget(self.zoom_scale)
         layout.addWidget(QLabel("Phương pháp nội suy:"))
         layout.addWidget(self.zoom_interpolation)
@@ -89,6 +99,7 @@ class ControlsPanel(QWidget):
 
         page_layout = QVBoxLayout(page)
         page_layout.addWidget(box)
+        page_layout.setSizeConstraint(QLayout.SizeConstraint.SetMinimumSize)
 
         self.zoom_scale.valueChanged.connect(lambda _: self._emit_current_parameters())
         self.zoom_interpolation.currentTextChanged.connect(lambda _: self._emit_current_parameters())
@@ -112,12 +123,26 @@ class ControlsPanel(QWidget):
         self.ccw_button = QPushButton("-15°")
         self.cw_button = QPushButton("+15°")
         self.rotate_reset = QPushButton("Đặt lại góc xoay")
+        for control in (
+            self.rotate_interpolation,
+            self.rotate_border,
+            self.left_90_button,
+            self.right_90_button,
+            self.ccw_button,
+            self.cw_button,
+            self.rotate_reset,
+        ):
+            control.setMinimumHeight(32)
+        shortcuts.setRowMinimumHeight(0, 32)
+        shortcuts.setRowMinimumHeight(1, 32)
         shortcuts.addWidget(self.left_90_button, 0, 0)
         shortcuts.addWidget(self.right_90_button, 0, 1)
         shortcuts.addWidget(self.ccw_button, 1, 0)
         shortcuts.addWidget(self.cw_button, 1, 1)
 
         layout = QVBoxLayout(box)
+        layout.setSpacing(8)
+        layout.setSizeConstraint(QLayout.SizeConstraint.SetMinimumSize)
         layout.addWidget(self.rotate_angle)
         layout.addWidget(QLabel("Phương pháp nội suy:"))
         layout.addWidget(self.rotate_interpolation)
@@ -128,6 +153,7 @@ class ControlsPanel(QWidget):
 
         page_layout = QVBoxLayout(page)
         page_layout.addWidget(box)
+        page_layout.setSizeConstraint(QLayout.SizeConstraint.SetMinimumSize)
 
         self.rotate_angle.valueChanged.connect(lambda _: self._emit_current_parameters())
         self.rotate_interpolation.currentTextChanged.connect(lambda _: self._emit_current_parameters())
@@ -166,12 +192,14 @@ class ControlsPanel(QWidget):
         help_label.setWordWrap(True)
 
         layout = QVBoxLayout(box)
+        layout.setSizeConstraint(QLayout.SizeConstraint.SetMinimumSize)
         layout.addLayout(form)
         layout.addWidget(help_label)
         layout.addLayout(buttons)
 
         page_layout = QVBoxLayout(page)
         page_layout.addWidget(box)
+        page_layout.setSizeConstraint(QLayout.SizeConstraint.SetMinimumSize)
 
         self.crop_apply.clicked.connect(lambda: self.cropApplied.emit(self._current_crop_parameters()))
         self.crop_reset.clicked.connect(self.cropReset.emit)

@@ -4,10 +4,11 @@ from dataclasses import asdict
 from pathlib import Path
 
 import numpy as np
+from PySide6.QtCore import QTimer, Qt
 from PySide6.QtWidgets import (
     QFileDialog,
-    QHBoxLayout,
     QMainWindow,
+    QSplitter,
     QMessageBox,
     QTabWidget,
     QVBoxLayout,
@@ -56,6 +57,10 @@ class MainWindow(QMainWindow):
         self.tabs.addTab(self.analysis_panel, "Phân tích kết quả")
         self.tabs.addTab(self.image_info, "Thông tin ảnh")
 
+        self.tabs.tabBar().setExpanding(True)
+        self.tabs.tabBar().setUsesScrollButtons(False)
+        self.tabs.setMinimumHeight(170)
+
         central = QWidget()
         self.setCentralWidget(central)
 
@@ -64,13 +69,28 @@ class MainWindow(QMainWindow):
         main_layout.setSpacing(12)
         main_layout.addWidget(self.toolbar)
 
-        content_layout = QHBoxLayout()
-        content_layout.setSpacing(12)
-        content_layout.addWidget(self.original_canvas, 1)
-        content_layout.addWidget(self.result_canvas, 1)
-        content_layout.addWidget(self.controls_panel, 0)
-        main_layout.addLayout(content_layout, 1)
-        main_layout.addWidget(self.tabs, 0)
+        self.content_splitter = QSplitter(Qt.Orientation.Horizontal)
+        self.content_splitter.setChildrenCollapsible(False)
+        self.original_canvas.setMinimumWidth(240)
+        self.result_canvas.setMinimumWidth(240)
+        self.controls_panel.setMinimumWidth(300)
+        self.content_splitter.addWidget(self.original_canvas)
+        self.content_splitter.addWidget(self.result_canvas)
+        self.content_splitter.addWidget(self.controls_panel)
+        self.content_splitter.setStretchFactor(0, 1)
+        self.content_splitter.setStretchFactor(1, 1)
+        self.content_splitter.setStretchFactor(2, 0)
+        self.content_splitter.setSizes([520, 520, 340])
+
+        self.workspace_splitter = QSplitter(Qt.Orientation.Vertical)
+        self.workspace_splitter.setChildrenCollapsible(False)
+        self.workspace_splitter.addWidget(self.content_splitter)
+        self.workspace_splitter.addWidget(self.tabs)
+        self.workspace_splitter.setStretchFactor(0, 1)
+        self.workspace_splitter.setStretchFactor(1, 0)
+        self.workspace_splitter.setSizes([620, 250])
+        main_layout.addWidget(self.workspace_splitter, 1)
+        QTimer.singleShot(0, self._stretch_tab_bar)
 
         self.toolbar.openImageRequested.connect(self.open_image)
         self.toolbar.openVideoRequested.connect(self.open_video)
@@ -84,6 +104,15 @@ class MainWindow(QMainWindow):
 
         self._on_operation_changed(self.controls_panel.current_operation())
         self._refresh_image_info()
+
+    def resizeEvent(self, event) -> None:  # noqa: N802
+        super().resizeEvent(event)
+        QTimer.singleShot(0, self._stretch_tab_bar)
+
+    def _stretch_tab_bar(self) -> None:
+        width = self.tabs.width()
+        if width > 2:
+            self.tabs.tabBar().setFixedWidth(width - 2)
 
     def open_image(self) -> None:
         path, _ = QFileDialog.getOpenFileName(self, "Open Image", "", IMAGE_FILTER)

@@ -52,8 +52,10 @@ def apply_rotate(
         raise ValueError(f"Unsupported border mode: {border_mode}")
 
     height, width = image.shape[:2]
-    rotation_center = center if center is not None else (width / 2.0, height / 2.0)
-    matrix = cv2.getRotationMatrix2D(rotation_center, angle, 1.0)
+    if center is None:
+        center = (width / 2.0, height / 2.0)
+
+    matrix = cv2.getRotationMatrix2D(center, angle, 1.0)
 
     start = time.perf_counter()
     rotated = cv2.warpAffine(
@@ -86,7 +88,7 @@ def apply_rotation(
     border_mode: str = "Constant Black",
     center: tuple[float, float] | None = None,
 ) -> RotationResult:
-    """Rotate around the image center by default, with optional custom-center support."""
+    """Wrapper function to maintain backward compatibility with existing callers and UI."""
     return apply_rotate(
         image=image,
         angle=angle,
@@ -94,3 +96,4 @@ def apply_rotation(
         border_mode=border_mode,
         interpolation=interpolation,
     )
+

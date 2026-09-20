@@ -35,7 +35,10 @@ def apply_zoom(image: np.ndarray, scale: float, interpolation: str) -> ZoomResul
 
     original_size = image_dimensions(image)
     start = time.perf_counter()
-    zoomed = cv2.resize(image, None, fx=scale, fy=scale, interpolation=INTERPOLATION_MAP[interpolation])
+    H, W = image.shape[:2]
+    W_new = max(1, round(W * scale))
+    H_new = max(1, round(H * scale))
+    zoomed = cv2.resize(image, (W_new, H_new), interpolation=INTERPOLATION_MAP[interpolation])
     elapsed = (time.perf_counter() - start) * 1000
 
     return ZoomResult(

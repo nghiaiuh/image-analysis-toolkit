@@ -69,7 +69,12 @@ def numpy_to_qpixmap(image: np.ndarray) -> QPixmap:
     return QPixmap.fromImage(numpy_to_qimage(image))
 
 
-def scale_pixmap_for_viewport(pixmap: QPixmap, viewport_size: QSize, device_pixel_ratio: float) -> QPixmap:
+def scale_pixmap_for_viewport(
+    pixmap: QPixmap,
+    viewport_size: QSize,
+    device_pixel_ratio: float,
+    transformation: Qt.TransformationMode = Qt.TransformationMode.SmoothTransformation,
+) -> QPixmap:
     """Scale a preview at the screen's physical resolution.
 
     Qt widget sizes are expressed in logical pixels. Rendering a pixmap at only
@@ -87,7 +92,7 @@ def scale_pixmap_for_viewport(pixmap: QPixmap, viewport_size: QSize, device_pixe
     scaled = pixmap.scaled(
         physical_size,
         Qt.AspectRatioMode.KeepAspectRatio,
-        Qt.TransformationMode.SmoothTransformation,
+        transformation,
     )
     scaled.setDevicePixelRatio(ratio)
     return scaled

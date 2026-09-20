@@ -59,7 +59,7 @@ class MainWindow(QMainWindow):
 
         self.tabs.tabBar().setExpanding(True)
         self.tabs.tabBar().setUsesScrollButtons(False)
-        self.tabs.setMinimumHeight(170)
+        self.tabs.setMinimumHeight(173)
 
         central = QWidget()
         self.setCentralWidget(central)
@@ -88,7 +88,7 @@ class MainWindow(QMainWindow):
         self.workspace_splitter.addWidget(self.tabs)
         self.workspace_splitter.setStretchFactor(0, 1)
         self.workspace_splitter.setStretchFactor(1, 0)
-        self.workspace_splitter.setSizes([620, 250])
+        self.workspace_splitter.setSizes([617, 253])
         main_layout.addWidget(self.workspace_splitter, 1)
         QTimer.singleShot(0, self._stretch_tab_bar)
 

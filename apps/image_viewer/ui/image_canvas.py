@@ -3,8 +3,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 import numpy as np
-from PySide6.QtCore import QPoint, QRect, Qt, Signal
-from PySide6.QtGui import QColor, QPainter, QPen
+from PySide6.QtCore import QPoint, QPointF, QRect, QSize, Qt, Signal
+from PySide6.QtGui import QColor, QPainter, QPen, QWheelEvent
 from PySide6.QtWidgets import QLabel, QVBoxLayout, QWidget
 
 from shared.image_utils import numpy_to_qpixmap, scale_pixmap_for_viewport
@@ -29,6 +29,8 @@ class _CanvasArea(QWidget):
         self._crop_rect: tuple[int, int, int, int] | None = None
         self._drag_start: QPoint | None = None
         self._drag_current: QPoint | None = None
+        self._view_scale = 1.0
+        self._view_offset = QPointF()
         self.setMinimumSize(260, 220)
         self.setMouseTracking(True)
 
@@ -39,6 +41,8 @@ class _CanvasArea(QWidget):
     def set_image(self, image: np.ndarray | None) -> None:
         self._image = image
         self._pixmap = numpy_to_qpixmap(image) if image is not None else None
+        self._view_scale = 1.0
+        self._view_offset = QPointF()
         self.update()
 
     def set_crop_enabled(self, enabled: bool) -> None:
@@ -64,14 +68,7 @@ class _CanvasArea(QWidget):
             return
 
         geometry = self._display_geometry()
-        scaled = scale_pixmap_for_viewport(
-            self._pixmap,
-            geometry.target_rect.size(),
-            self.devicePixelRatioF(),
-        )
-        target = QRect(geometry.target_rect)
-        target.setSize(scaled.deviceIndependentSize().toSize())
-        target.moveCenter(self.rect().center())
+        scaled, target = self._rendered_pixmap_and_rect(geometry)
         painter.drawPixmap(target, scaled)
 
         if self._crop_rect:
@@ -108,6 +105,30 @@ class _CanvasArea(QWidget):
             self.cropRectChanged.emit(crop_rect)
         self.update()
 
+    def wheelEvent(self, event: QWheelEvent) -> None:  # noqa: N802
+        if self._pixmap is None or not event.angleDelta().y():
+            event.ignore()
+            return
+
+        geometry = self._display_geometry()
+        _, old_target = self._rendered_pixmap_and_rect(geometry)
+        factor = 1.25 if event.angleDelta().y() > 0 else 0.8
+        new_scale = max(0.25, min(16.0, self._view_scale * factor))
+        if new_scale == self._view_scale:
+            event.accept()
+            return
+
+        cursor = event.position()
+        relative_x = max(0.0, min(1.0, (cursor.x() - old_target.x()) / max(1, old_target.width())))
+        relative_y = max(0.0, min(1.0, (cursor.y() - old_target.y()) / max(1, old_target.height())))
+        self._view_scale = new_scale
+        _, new_target = self._rendered_pixmap_and_rect(geometry)
+        center_x = cursor.x() - relative_x * new_target.width() + new_target.width() / 2
+        center_y = cursor.y() - relative_y * new_target.height() + new_target.height() / 2
+        self._view_offset = QPointF(center_x - self.rect().center().x(), center_y - self.rect().center().y())
+        self.update()
+        event.accept()
+
     def _display_geometry(self) -> CanvasGeometry:
         if self._image is None:
             return CanvasGeometry(self.rect().adjusted(12, 12, -12, -12), 1, 1)
@@ -119,15 +140,10 @@ class _CanvasArea(QWidget):
             return None
 
         geometry = self._display_geometry()
-        image_rect = geometry.target_rect
         image_width = geometry.image_width
         image_height = geometry.image_height
-
-        scale = min(image_rect.width() / image_width, image_rect.height() / image_height)
-        draw_width = int(image_width * scale)
-        draw_height = int(image_height * scale)
-        draw_rect = QRect(0, 0, draw_width, draw_height)
-        draw_rect.moveCenter(self.rect().center())
+        _, draw_rect = self._rendered_pixmap_and_rect(geometry)
+        scale = min(draw_rect.width() / image_width, draw_rect.height() / image_height)
 
         clipped = widget_rect.intersected(draw_rect)
         if clipped.width() < 2 or clipped.height() < 2:
@@ -143,6 +159,27 @@ class _CanvasArea(QWidget):
         width = max(1, min(image_width - x, width))
         height = max(1, min(image_height - y, height))
         return (x, y, width, height)
+
+    def _rendered_pixmap_and_rect(self, geometry: CanvasGeometry):
+        viewport_size = QSize(
+            max(1, round(geometry.target_rect.width() * self._view_scale)),
+            max(1, round(geometry.target_rect.height() * self._view_scale)),
+        )
+        transformation = (
+            Qt.TransformationMode.FastTransformation
+            if self._view_scale > 1.0
+            else Qt.TransformationMode.SmoothTransformation
+        )
+        scaled = scale_pixmap_for_viewport(
+            self._pixmap,
+            viewport_size,
+            self.devicePixelRatioF(),
+            transformation,
+        )
+        target = QRect(geometry.target_rect)
+        target.setSize(scaled.deviceIndependentSize().toSize())
+        target.moveCenter(self.rect().center() + self._view_offset.toPoint())
+        return scaled, target
 
     def _draw_image_rect(
         self,
